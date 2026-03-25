@@ -7,7 +7,7 @@ add_compile_options(-fsanitize=address)
 add_link_options(-fsanitize=address)
 set(CMAKE_BUILD_TYPE Debug)
 
-file(GLOB_RECURSE SPHEN_SRC PUBLIC
+file(GLOB_RECURSE SPHEN_SRC
         "str.c"
         "debug.c"
         "tokens.c"
@@ -19,4 +19,3 @@ add_executable(Sphen
 	${SPHEN_SRC}
 	main.c
 )
-

@@ -20,6 +20,7 @@ typedef enum {
     ID,
     FN, OBJECT, CONSTRUCT, DESTRUCT, TEMPLATE, IMPORT, EXPORT, LET, CONST, REF, ENUM,
 } TokenType;
+
 typedef enum {
     UNKNOWN = 0,
     IDENT, //1
@@ -29,7 +30,6 @@ typedef enum {
     CONTROL, KEYWORD, //11 12
     END_OF_FILE //13
 } TokenClass;
-
 
 typedef union {
 	signed char 			c;		//char
@@ -59,9 +59,9 @@ extern void vecdel(TokenVec*);
 extern void vecadd(TokenVec*, const Token);
 
 extern void initTokens();
-extern Token getKeywordToken(const char* str, unsigned long len);
-extern Token getPunctToken(const char* str, unsigned long len);
-extern Token getOperatorToken(const char* str, unsigned long len);
+extern Token getKeywordToken(const char* str, size_t len);
+extern Token getPunctToken(const char* str, size_t len);
+extern Token getOperatorToken(const char* str, size_t len);
 
 #ifdef __cplusplus
 }

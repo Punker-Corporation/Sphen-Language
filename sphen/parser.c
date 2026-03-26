@@ -455,10 +455,9 @@ NodeId parse_let_decl(Parser* p){
 ASTblock parse_block(Parser* p, TokenType endToken, char* err){
 	ASTblock block;
 	block.begin = p->nodes.len;
-		
+	block.last = 0;  // inicializa para evitar lixo
 	while(parse_peek(p).type != endToken && !parse_isEof(p))
 		block.last = parse_getAST(p);
-	
 	block.count = p->nodes.len - block.begin;
 	expectType(p, endToken, err);
 	return block;
@@ -588,9 +587,9 @@ NodeId parse_do_while_statement(Parser* p){
 	pushnode(&p->nodes, node);
 
 	parse_next(p);
-	_NODE(p, node).while_st.block = parse_block(p, WHILE, "expected a $<cyan clear bold:while>$ to close $<cyan clear bold:do-while>$");
+	_NODE(p, node).dowhile_st.block = parse_block(p, WHILE, "expected a $<cyan clear bold:while>$ to close $<cyan clear bold:do-while>$");
 	
-	_NODE(p, node).while_st.cond = parse_getValue(p);
+	_NODE(p, node).dowhile_st.cond = parse_getValue(p);
 	expectToken(p, PUNCT, COLON, "expected a $<cyan clear bold::>$ after the $<cyan clear bold:do-while>$ condition");
 
 	return node.id;
@@ -605,9 +604,10 @@ void parse_case_statement(Parser* p){
 	_NODE(p, node).case_st.cond = parse_getValue(p);
 	expectToken(p, PUNCT, COLON, "expected a $<cyan clear bold::>$ after the $<cyan clear bold:case>$ condition");
 	
-	_NODE(p, node).switch_st.cases.begin = p->nodes.len;
+	_NODE(p, node).case_st.body.begin = p->nodes.len;
 	while(!(matchType(p, END) || matchType(p, CASE) || matchType(p, DEFAULT)))
 		_NODE(p, node).case_st.body.last = parse_getAST(p);
+	_NODE(p, node).case_st.body.count = p->nodes.len - _NODE(p, node).case_st.body.begin;
 	
 	if(!(matchType(p, END) || matchType(p, CASE) || matchType(p, DEFAULT))) 
 		parse_debug(p, ERROR, "expected at least $<cyan clear bold:switch end>$, another $<cyan clear bold:case>$, or $<cyan clear bold:default case>$ at end of $<cyan clear bold:case>$");
@@ -619,10 +619,10 @@ NodeId parse_default_statement(Parser* p){
 	parse_next(p);
 	expectToken(p, PUNCT, COLON, "expected a $<cyan clear bold::>$ after the $<cyan clear bold:default case>$");
 	
-	
-	_NODE(p, node).switch_st.cases.begin = p->nodes.len;
+	_NODE(p, node).case_st.body.begin = p->nodes.len;
 	while(!(matchType(p, END) || matchType(p, CASE) || matchType(p, DEFAULT)))
 		_NODE(p, node).case_st.body.last = parse_getAST(p);
+	_NODE(p, node).case_st.body.count = p->nodes.len - _NODE(p, node).case_st.body.begin;
 	
 	if(!(matchType(p, END) || matchType(p, CASE))) 
 		parse_debug(p, ERROR, "expected at least $<cyan clear bold:switch end>$ or another $<cyan clear bold:case>$ at end of $<cyan clear bold:default case>$");
@@ -649,7 +649,7 @@ NodeId parse_switch_statement(Parser* p){
 		}
 	}
 	expectToken(p, CONTROL, END, "expected a $<cyan clear bold:end>$ at end of $<cyan clear bold:switch>$");
-	_NODE(p, node).switch_st.cases.count = p->nodes.len - _NODE(p, node).while_st.block.begin;
+	_NODE(p, node).switch_st.cases.count = p->nodes.len - _NODE(p, node).switch_st.cases.begin;
 	
 	return node.id;
 }

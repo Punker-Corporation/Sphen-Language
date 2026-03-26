@@ -157,11 +157,11 @@ Compilador C com suporte a C17 (GCC, Clang, MSVC)<br>
 
 ### Passos:
 ```
-git clone https://github.com/Punker-Corporation/Sphen-Language.git<br>
-cd Sphen-Language<br>
-mkdir build && cd build<br>
-cmake ..<br>
-make<br>
+git clone https://github.com/Punker-Corporation/Sphen-Language.git
+cd Sphen-Language
+mkdir build && cd build
+cmake ..
+make
 ```
 
 

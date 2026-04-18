@@ -1,10 +1,16 @@
-# Linguagem Sphen
+<div align="center">
+    <img src="logo/sphen-logo.svg" width="400" alt="A penguin's head representing the Sphen logo.">
+</div>
 
+# Linguagem Sphen
 > Uma linguagem moderna, fortemente tipada, com orientação a objetos explícita e suporte a módulos – evolução do [Lua](https://www.lua.org/) mantendo a simplicidade.
 
 ## Estado atual
 
-**Análise léxica e sintática.**  
+### Desenvolvimento
+Sphen ainda está num estado bem inicial, muitas coisas podem mudar no futuro.
+
+### Análise léxica e sintática
 O compilador já implementa:
 - Analisador léxico completo (tokens, palavras-chave, operadores, números, strings, caracteres, comentários)
 - Analisador sintático recursivo descendente
@@ -60,7 +66,7 @@ fn preset(): int, str, (char, float)
 end
 ```
 
-### Estruturas condicionais:
+### Estruturas condicionais
 ```sphen
 if x > 0:
     print("positivo")
@@ -102,7 +108,7 @@ switch valor:
         print("outro")
 end
 ```
-#### Nota: Sphen possui fallthrough em switch. Use break para sair do caso; omissão causa execução sequencial.
+*Nota: Sphen possui fallthrough em switch. Use break para sair do caso; omissão causa execução sequencial.*
 
 ### Tuplas
 ```sphen
@@ -151,11 +157,11 @@ let (q, r) = divide_resto(10, 3)   # desestruturação
 ---
 
 ## Compilação
-### Requisitos:
+### Requisitos
 CMake 3.25+<br>
 Compilador C com suporte a C17 (GCC, Clang, MSVC)<br>
 
-### Passos:
+### Passos
 ```
 git clone https://github.com/Punker-Corporation/Sphen-Language.git
 cd Sphen-Language
@@ -168,6 +174,3 @@ make
 Uso: `./Sphen caminho/para/arquivo.sp`<br>
 
 Nota:Atualmente, o compilador apenas exibe erros léxicos/sintáticos ou, em modo de depuração, a lista de tokens e a AST gerada.
-
-
-

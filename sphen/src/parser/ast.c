@@ -17,12 +17,12 @@ int newastvec(AST_vec* v) {
         return 0;
     }
     v->len = 0;
+    v->cap = 256;
     size_t bytes = 0;
     if(!safe_mul_size(v->cap, sizeof(AST_node), &bytes)){
     	puts("AST::INIT::OVERFLOW");
     	exit(EXIT_FAILURE);
     }
-    v->cap = 256;
     v->data = (AST_node*)malloc(bytes);
     if (v->data == NULL) {
         puts("AST::INIT::ALLOC");
@@ -126,11 +126,28 @@ Node_id getvecid(Vec_id* v, size_t index) {
 }
 
 void pushvecid(Vec_id* v, Node_id val) {
+	if(v == NULL || v->data == NULL){
+		puts("VEC_ID::PUSH::NULL");
+		return;
+	}
 	if (v->len >= v->cap) {
 		size_t newcap = v->cap * 2;
+		if(newcap < v->cap){
+			puts("VEC_ID::PUSH::OVERFLOW");
+			exit(EXIT_FAILURE);
+		}
+		size_t bytes = 0;
+		if(!safe_mul_size(newcap, sizeof(Node_id), &bytes)){
+			puts("VEC_ID::PUSH::OVERFLOW");
+			exit(EXIT_FAILURE);			
+		}
 		size_t old_off = (size_t)((u8_t*)v->data - v->arena->data);
 
-		Node_id* newdata = arena_alloc(v->arena, sizeof(Node_id) * newcap);
+		Node_id* newdata = arena_alloc(v->arena, bytes);
+		if(!newdata){
+			puts("VEC_ID::PUSH::ALLOC");
+			exit(EXIT_FAILURE);
+		}
 		Node_id* olddata = (Node_id*)(v->arena->data + old_off);
 		memcpy(newdata, olddata, sizeof(Node_id) * v->len);
 		

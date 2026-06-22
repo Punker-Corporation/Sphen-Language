@@ -53,7 +53,7 @@ bool insert_symbol(SymbolTable* st, char* name, SymbolKind kind, char* type) {
     
     Symbol* current = st->current_scope->table[index];
     while (current) {
-        if (strncmp(current->name, name, strlen(name)) == 0) return false;
+        if (memcmp(current->name, name, strlen(name)) == 0) return false;
         current = current->next;
     }
 

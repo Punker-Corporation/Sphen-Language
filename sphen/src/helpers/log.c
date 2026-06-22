@@ -1,24 +1,21 @@
-#include "debug.h"
+#include "log.h"
 #include "str.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
-static void append(String* str, const char* txt, const int len){
-    for(int i = 0; i < len; i++)
-        strapp(str, txt[i]);
-}
 
-static char* getfg(char* key, char len){
+static char* getfg(const char* key, char len){
     switch(len){
         case 3: 
             if(memcmp(key, "red", 3)==0) return "31";
-            if(memcmp(key, "std", 3)==0) return "39";
         case 4: 
             if(memcmp(key, "cyan", 4)==0) return "36";
             if(memcmp(key, "blue", 4)==0) return "34";
         case 5: 
+            if(memcmp(key, "clear", 3)==0) return "39";
             if(memcmp(key, "black", 5)==0) return "30";
             if(memcmp(key, "white", 5)==0) return "37";
             if(memcmp(key, "green", 5)==0) return "32";
@@ -30,15 +27,15 @@ static char* getfg(char* key, char len){
     }
 }
 
-static char* getbg(char* key, char len){
+static char* getbg(const char* key, char len){
     switch(len){
         case 3: 
             if(memcmp(key, "red", 3)==0) return ";41";
-            if(memcmp(key, "std", 3)==0) return ";49";
         case 4: 
             if(memcmp(key, "cyan", 4)==0) return ";46";
             if(memcmp(key, "blue", 4)==0) return ";44";
         case 5: 
+            if(memcmp(key, "clear", 3)==0) return ";49";
             if(memcmp(key, "black", 5)==0) return ";40";
             if(memcmp(key, "white", 5)==0) return ";47";
             if(memcmp(key, "green", 5)==0) return ";42";
@@ -50,7 +47,7 @@ static char* getbg(char* key, char len){
     }
 }
 
-static char* getattr(char* key, char len){
+static char* getattr(const char* key, char len){
     switch(len){
         case 4:
             if(memcmp(key, "slim", 4)==0) return ";2";
@@ -67,50 +64,66 @@ static char* getattr(char* key, char len){
         default: return ";1";
     }
 }
+void _text_format(char* s, unsigned long int size, const char* fmt, ...){
+	va_list args;
+	if(!s){
+		puts("TEXT_FORMAT:STRING:NULL");
+		exit(EXIT_FAILURE);
+	};
+    va_start(args, fmt);
+   	vsnprintf(s, size, fmt, args);
+	va_end(args);
+}
+void _print_format(const char* fmt, ...){
+	char msg[LOG_SIZE];
+	va_list args;
+	
+    va_start(args, fmt);
+   	vsnprintf(msg, LOG_SIZE, fmt, args);
+	va_end(args);
+	_print_log(msg);
+}
 
-void LOG(const char* format, ...){
-    char text[512];
-    va_list args;
-    va_start(args, format);
-    vsnprintf(text, sizeof(text), format, args);
-    va_end(args);
 
-    String str = newstr("");
+void _print_log(const char* text){
+    
+    str_t str = str_new(NULL);
     
     int i = 0;
     while(text[i]){
         if(text[i] == '$' && text[i+1] == '<'){
             i += 2;
-            String esc = newstr("");
+            str_t esc = str_new(NULL);
             int index = 0;
-            append(&str, "\e[", 2);
+            str_app(&str, "\e[");
             while(text[i] && text[i] != ':'){
                 if(!isalpha(text[i]) && text[i]!=':'){ i++; continue; }
-                while(isalpha(text[i]))
-                    strapp(&esc, text[i++]);
+                while(isalpha(text[i])) 
+                	str_push(&esc, text[i++]);
 
                 switch(index) {
-                    case 0: append(&str, getfg(esc.data, esc.size), 2); break;
-                    case 1: append(&str, getbg(esc.data, esc.size), 3); break;
-                    default: append(&str, getattr(esc.data, esc.size), 2); break;
+                    case 0: 	str_app(&str, getfg(esc.data, esc.len)); break;
+                    case 1: 	str_app(&str, getbg(esc.data, esc.len)); break;
+                    default: 	str_app(&str, getattr(esc.data, esc.len)); break;
                 }
-                strclean(&esc);
+                str_free(&esc);
                 index++;
             }
             i++; // skip the comma or closing '>'
-            strdel(&esc);
-            strapp(&str, 'm');
+            //str_free(esc.data);
+            str_push(&str, 'm');
             while(text[i] && !(text[i] == '>' && text[i+1] == '$'))
-                strapp(&str, text[i++]);
+                str_push(&str, text[i++]);
             if(text[i] == '>' && text[i+1] == '$'){
                 i += 2;
-                append(&str, "\e[0m", 4);
+            	str_app(&str, "\e[0m");
             }
             continue;
         }
-        strapp(&str, text[i++]);
+        str_push(&str, text[i++]);
     }
-
-    printf("%s\n", str.data);
-    strdel(&str);
+    str_app(&str, "\e[0m");
+    puts(str.data);
+    str_free(&str);
 }
+

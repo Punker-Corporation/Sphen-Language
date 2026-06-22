@@ -24,8 +24,7 @@ i32_t get_precedence(Token_k type) {
         default: return PREC_NONE;
     }
 }
-Node_id parse_literal(Parser* p){
-	Token_t t = parse_peek(p);
+static Node_id parse_literal(Parser* p, Token_t t){
 	AST_node node = parse_node(p, AST_LITERAL);
 	node.literal.type = t.kind;
 	node.literal.data = t.data;
@@ -41,10 +40,10 @@ Node_id parse_primary(Parser* p){
 		return parse_call(p, t);
 	}
     if(t.group == LITERAL){
-    	return parse_literal(p);
+    	return parse_literal(p, t);
     }
     if(t.kind == L_PAREN_OP){
-            node.id = parse_expr(p, parse_peek(p).kind);
+            node.id = parse_expr(p, PREC_NONE);
             expect_token(p, OPERATOR, R_PAREN_OP, "expected a$<cyan clear bold: )>$ to close expression");
             return node.id;
     }
@@ -60,7 +59,7 @@ Node_id parse_primary(Parser* p){
         
     }
     parse_debug(p, t.line, t.col, ERROR, "expected some $<cyan clear bold:value>$ to expression");
-    return node.id;
+    return 0;
 }
 
 Node_id parse_expr(Parser* p, int prec){
@@ -120,9 +119,9 @@ Node_id parse_tuple_expr(Parser* p){
 
 Node_id parse_get_value(Parser* p){
     if(match_token(p, OPERATOR, L_PAREN_OP)) {
-        int i = p->pos;
+        size_t i = p->pos;
         bool isTuple = false;
-        while(p->lexer.vec.data[i].kind != R_PAREN_OP){
+        while(i < p->lexer.vec.size && p->lexer.vec.data[i].kind != R_PAREN_OP){
             if(p->lexer.vec.data[i].kind == COMMA_OP ){isTuple=true; break;}
             i++;
         }

@@ -16,22 +16,30 @@ void* arena_alloc(Arena* a, size_t size) {
 		puts("ARENA::ALLOC::NULL\n");
 		exit(EXIT_FAILURE);
 	}
-	void* ptr;
-	if (a->offset + size >= a->cap) {
-		size_t new_cap = a->cap;
-        new_cap *= 2;
-        u8_t* tmp = (u8_t*)realloc(a->data, new_cap);
 
-        if(a->cap > new_cap){
-          	puts("ARENA::ALLOC::OVERFLOW\n");
-       	    exit(EXIT_FAILURE);
+	if(size > SIZE_MAX - a->offset){
+		puts("ARENA::ALLOC::OVERFLOW");
+		exit(EXIT_FAILURE);
+	}
+	size_t required = a->offset + size;
+	
+	void* ptr;
+	if (required >= a->cap) {
+		size_t new_cap = (a->cap == 0) ? 1 : a->cap;
+        while(new_cap < required){
+        	if(new_cap > SIZE_MAX / 2) {
+				puts("ARENA::ALLOC::OVERFLOW");
+				exit(EXIT_FAILURE);
+        	}
+        	new_cap *= 2;
         }
+        u8_t* tmp = (u8_t*)realloc(a->data, new_cap);
         if(!tmp){
-        	puts("ARENA::ALLOC::ERROR\n");
-        	exit(EXIT_FAILURE);
+			puts("ARENA::ALLOC::OVERFLOW");
+			exit(EXIT_FAILURE);
         }
-    	a->cap = new_cap;
-    	a->data = tmp;
+        a->cap = new_cap;
+        a->data = tmp;
     }
     ptr = a->data + a->offset;
     a->offset += size;

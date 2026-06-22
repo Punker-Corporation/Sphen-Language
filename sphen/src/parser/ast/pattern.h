@@ -22,7 +22,7 @@ typedef struct AST_pattern {
         } typed;
 
         struct {
-            struct Pattern** items;
+            struct AST_pattern** items;
             unsigned long int len;
         } tuple;
     };

@@ -28,6 +28,17 @@ void exit_scope(SymbolTable* st) {
     
     Scope* old_scope = st->current_scope;
     st->current_scope = old_scope->parent;
+
+	for(u32_t i = 0; i < HASH_SIZE; i++){
+		Symbol* cur = old_scope->table[i];
+		while(cur){
+			Symbol* next = cur->next;
+			free(cur->name);
+			free(cur->type_name);
+			free(cur);
+			cur = next;
+		}
+	}
     
     free(old_scope); 
 }
@@ -36,19 +47,30 @@ void exit_scope(SymbolTable* st) {
 // Insere um símbolo no escopo ATUAL
 bool insert_symbol(SymbolTable* st, char* name, SymbolKind kind, char* type) {
     if (!st->current_scope) return false;
+    if (!name || !type) return false;
 
     u32_t index = hash(name);
     
     Symbol* current = st->current_scope->table[index];
     while (current) {
-        if (memcmp(current->name, name, strlen(name)) == 0) return false;
+        if (strncmp(current->name, name, strlen(name)) == 0) return false;
         current = current->next;
     }
 
     Symbol* new_sym = (Symbol*)malloc(sizeof(Symbol));
-    memcpy(new_sym->name, name, strlen(name)+1 );
+    if (!new_sym) return false;
+    memset(new_sym, 0, sizeof(Symbol));
+    new_sym->name = (char*)malloc(strlen(name) + 1);
+    new_sym->type_name = (char*)malloc(strlen(type) + 1);
+	if(!new_sym->name || !new_sym->type_name){
+		free(new_sym->name);
+		free(new_sym->type_name);
+		free(new_sym);
+		return false;
+	}
+
     new_sym->kind = kind;
-    memcpy(new_sym->type_name, type, strlen(type)+1 );
+    memcpy(new_sym->type_name, type, strlen(type)+1);
     
     new_sym->next = st->current_scope->table[index];
     st->current_scope->table[index] = new_sym;

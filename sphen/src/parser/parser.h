@@ -33,7 +33,6 @@ extern void parse_debug(Parser* p, size_t line, size_t col, const u8_t type, con
 extern Node_id parse_get_value(Parser* p);
 extern Node_id parse_expr(Parser* p, int prec);
 extern Node_id parse_tuple_expr(Parser* p);
-extern Node_id parse_literal(Parser* p);
 
 extern AST_block parse_block(Parser* p, Token_k endToken, char* err);
 

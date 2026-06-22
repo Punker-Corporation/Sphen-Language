@@ -28,12 +28,14 @@ int str_app(str_t* s1, const char* s2) {
 	size_t s2_len = strlen(s2);
 	
 	while(s1->cap - s1->len <= s2_len){
-		s1->cap *= 2;
-		char* tmp = realloc(s1->data, s1->cap);
+		if(s1->cap > SIZE_MAX / 2) return false;
+		size_t new_cap = s1->cap *= 2;
+		char* tmp = realloc(s1->data, new_cap);
 		if(!tmp){
 			puts("STRING:APPEND:REALLOC:ERROR");
 			exit(EXIT_FAILURE);
-		};
+		}
+		s1->cap = new_cap;
 		s1->data = tmp;
 	}
 	memcpy(s1->data + s1->len, s2, s2_len);
@@ -47,12 +49,14 @@ int str_push(str_t* s, const char c) {
 	if(!s || !s->data || !c) return false;
 	
 	if(s->len + 1 >= s->cap ){
-		s->cap *= 2;
-		char* tmp = realloc(s->data, s->cap);
+		if(s->cap > SIZE_MAX / 2) return false;
+		size_t new_cap = s->cap *= 2;
+		char* tmp = realloc(s->data, new_cap);
 		if(!tmp){
 			puts("STRING:PUSH:REALLOC:ERROR");
 			exit(EXIT_FAILURE);
-		};
+		}
+		s->cap = new_cap;
 		s->data = tmp;
 	}
 	s->data[s->len] = c;

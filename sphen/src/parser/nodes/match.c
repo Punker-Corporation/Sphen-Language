@@ -2,7 +2,7 @@
 
 
 static Match_Pattern parse_case_pattern(Parser* p, Pattern_match_k kind){
-	AST_node node;
+	Match_Pattern pattern = {.kind = kind};
     
 	while(parse_peek(p).kind != COLON_OP && !parse_is_eof(p)){
 		Token_t t = parse_peek(p);
@@ -14,26 +14,28 @@ static Match_Pattern parse_case_pattern(Parser* p, Pattern_match_k kind){
 				case CHARACTER	: 
 				case TRUE_LIT	: 
 				case FALSE_LIT	: 
-					node.case_st.pattern.kind = MATCH_LITERAL; 
+					pattern.kind = MATCH_LITERAL; 
 					parse_next(p);
 					break;
 				case ID: 
 					parse_next(p);
-					node.case_st.pattern.kind = MATCH_IDENT; 
+					pattern.kind = MATCH_IDENT; 
 					break;
 					
 				default: 
-					break;
+					parse_debug(p, t.line, t.col, ERROR, "Unexpected token in $<cyan clear bold:match case pattern>$");
+					parse_next(p);
+					continue;
 			}
 		if(match_token(p, OPERATOR, LOGIC_OR_OP))
-			node.case_st.pattern.kind = MATCH_OR; 
+			pattern.kind = MATCH_OR; 
 		
 	}
 
 	expect_token(p, OPERATOR, COLON_OP, "Expected a $<cyan, clear, bold::>$ to open $<cyan, clear, bold:match case block>$");
 
     
-	return node.case_st.pattern;
+	return pattern;
 }
 
 static AST_block parse_case_block(Parser* p){
@@ -59,10 +61,6 @@ static void parse_case_if(Parser* p){
 	node.case_st.pattern.kind = MATCH_IF;
 	node.case_st.pattern.condition = parse_expr(p, get_precedence(tok.kind));
 
-	char msg[32];
-	get_token_name(parse_peek(p), msg, 32);
-	puts(msg);
-	parse_next(p);
 	expect_token(p, OPERATOR, COLON_OP, "Expected a $<cyan, clear, bold::>$ to open $<cyan, clear, bold:if match case block>$");
 
 	node.case_st.body = parse_case_block(p);

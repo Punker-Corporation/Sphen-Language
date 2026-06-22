@@ -9,12 +9,12 @@ void parse_debug(Parser* p, size_t line, size_t col, const unsigned char type, c
 	char* fileName = p->lexer.file.name;
 	switch(type){
         case ERROR: 
-			DIAG_FORMAT("$<red, clear, bold:ERROR>$ in $<clear, clear, bold:%s>$ at $<cyan, clear:Line %d>$, $<cyan, clear:Col %d>$:\n\t%s", 
+			DIAG_FORMAT("$<red, clear, bold:ERROR>$ in $<clear, clear, bold:%s>$ at $<cyan, clear:Line %zu>$, $<cyan, clear:Col %zu>$:\n\t%s", 
 				fileName, line, col, message); 
 			p->errors++;
             break;
         case WARN: 
-            DIAG_FORMAT("$<yellow, clear, bold:WARN>$ in $<clear, clear, bold:%s>$ at $<cyan, clear:Line %d>$, $<cyan, clear:Col %d>$:\n\t%s", 
+            DIAG_FORMAT("$<yellow, clear, bold:WARN>$ in $<clear, clear, bold:%s>$ at $<cyan, clear:Line %zu>$, $<cyan, clear:Col %zu>$:\n\t%s", 
 				fileName, line, col, message); 
 			p->warns++;
             break;
@@ -22,7 +22,7 @@ void parse_debug(Parser* p, size_t line, size_t col, const unsigned char type, c
 }
 
 Parser parser_init(const char* filename){
-    Parser p;
+    Parser p = {0};
     
     p.id = p.pos = p.count = 0;
     

@@ -106,7 +106,7 @@
 	X(L_SHIFT_BIT_OP,	OPERATOR,			"<<", 			2)\
 	X(R_SHIFT_BIT_OP,	OPERATOR,			">>", 			2)\
 	X(AND_BIT_OP,		OPERATOR,			"&", 			1)\
-	X(OR_BIT_OP,		OPERATOR,			"!", 			1)\
+	X(OR_BIT_OP,		OPERATOR,			"|", 			1)\
 	X(NOT_BIT_OP,		OPERATOR,			"~", 			1)\
 	X(XOR_BIT_OP,		OPERATOR,			"^", 			1)\
 	X(AND_EQUAL_BIT_OP,	OPERATOR,			"&=", 			2)\

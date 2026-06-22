@@ -49,6 +49,7 @@ Node_id parse_func_decl(Parser* p){
     } else node.func.name = expect_group(p, IDENT, "expected function $<cyan clear bold:name>$").data.str;
 
 	if(match_token(p, OPERATOR, LST_OP))
+		parse_func_generics(p);
 	
 	char errorLog[LOG_SIZE];
 	if(!match_token(p, OPERATOR, L_PAREN_OP)){
@@ -63,12 +64,12 @@ Node_id parse_func_decl(Parser* p){
     node.func.param.count = p->nodes.len - node.func.param.begin;
     
     node.func.ret_type = 0;
-    if(!match_token(p, OPERATOR, COLON_OP)){
-    	DIAG_FORMAT(errorLog, LOG_SIZE, "expected a $<cyan, clear, bold:valid return type>$ to $<cyan, clear, bold:%s>$ $<cyan, clear, bold:function>$",
-    		node.func.name);
-
-        node.func.ret_type = parse_type(p, NULL);
-    }
+    if(match_token(p, OPERATOR, COLON_OP)){
+		parse_next(p); // consume ':' before return type
+		DIAG_FORMAT(errorLog, LOG_SIZE, "expected a $<cyan, clear, bold:valid return type>$ to $<cyan, clear, bold:%s>$ $<cyan, clear, bold:function>$",
+ 			node.func.name);
+		node.func.ret_type = parse_type(p, errorLog);
+	}
     expect_token(p, OPERATOR, COLON_OP, "expected $<cyan, clear, bold::>$ to open function block");
     node.func.block = parse_block(p, END_K, "expected a $<cyan, clear, bold:end>$ to close function block");
     pushnode(&p->nodes, node);

@@ -16,9 +16,9 @@ Node_id parse_tuple_type(Parser* p){
                 break;
         }
         Token_t t = parse_peek(p);
-        if(tok.kind == R_PAREN_OP || tok.kind == COMMA_OP){ 
-            parse_debug(p, ERROR, t.line, t.col, "expected a $<cyan clear bold:type>$ at $<cyan clear bold:tuple type>$"); 
+        if(t.kind == R_PAREN_OP || t.kind == COMMA_OP){ 
             parse_next(p);
+            parse_debug(p, ERROR, t.line, t.col, "expected a $<cyan clear bold:type>$ at $<cyan clear bold:tuple type>$"); 
             break;
         }
 
@@ -30,8 +30,8 @@ Node_id parse_tuple_type(Parser* p){
     }
     
     node.tuple.values.count = p->nodes.len - node.tuple.values.begin;
-    if(node.tuple.count < 2) parse_debug(p, ERROR, tok.line, tok.col, "$<cyan clear bold:tuple types>$ needs $<cyan clear bold:2 or more>$ types");
     expect_token(p, OPERATOR, R_PAREN_OP, "expected a $<cyan clear bold:)>$ to close $<cyan clear bold:tuple type>$");
+    if(node.tuple.count < 2) parse_debug(p, ERROR, tok.line, tok.col, "$<cyan clear bold:tuple types>$ needs $<cyan clear bold:2 or more>$ types");
 
     pushnode(&p->nodes, node);
     return node.id;

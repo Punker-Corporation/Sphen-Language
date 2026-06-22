@@ -18,10 +18,15 @@ Node_id parse_elif_statement(Parser* p){
     expect_token(p, OPERATOR, COLON_OP, "expected a $<cyan clear bold::>$ after $<cyan clear bold:elif>$ condition");
     
     node.if_st.then_block.begin = p->nodes.len;
-    while(!(match_kind(p, END_K) || match_kind(p, ELIF_K) || match_kind(p, ELSE_K)))
+    while(!(match_kind(p, END_K) || match_kind(p, ELIF_K) || match_kind(p, ELSE_K)) && !parse_is_eof(p)){	
         node.if_st.then_block.last = parse_get_AST(p);
+    }
+	if(parse_is_eof(p)){
+		Token_t eof_tok = parse_peek(p);
+		parse_debug(p, eof_tok.line, eof_tok.col, ERROR, "unexpected $<cyan clear bold:EOF>$ while parsing conditional block");
+	}
     node.if_st.then_block.count = p->nodes.len - node.if_st.then_block.begin;
-
+	
 	Token_t tok = parse_peek(p);
     switch(tok.kind){
         case ELIF_K: node.if_st.else_block = parse_elif_statement(p); break;
@@ -50,7 +55,7 @@ Node_id parse_if_statement(Parser* p){
         case ELIF_K: node.if_st.else_block = parse_elif_statement(p); break;
         case ELSE_K: node.if_st.else_block = parse_else_statement(p); break;
         case END_K: parse_next(p); break;
-        default: parse_debug(p, -1, tok.line, tok.col, "expected at least $<cyan clear bold:end>$, $<cyan clear bold:else>$, or $<cyan clear bold:elif>$ at the end of the $<cyan clear bold:if>$"); break;
+        default: parse_debug(p, tok.line, tok.col, ERROR, "expected at least $<cyan clear bold:end>$, $<cyan clear bold:else>$, or $<cyan clear bold:elif>$ at the end of the $<cyan clear bold:if>$"); break;
     }
     
     pushnode(&p->nodes, node);

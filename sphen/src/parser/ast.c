@@ -13,14 +13,19 @@ static inline int safe_mul_size(size_t a, size_t b, size_t *result) {
 
 int newastvec(AST_vec* v) {
     if (v == NULL) {
-        printf("AST::INIT::NULL\n");
+        puts("AST::INIT::NULL\n");
         return 0;
     }
     v->len = 0;
+    size_t bytes = 0;
+    if(!safe_mul_size(v->cap, sizeof(AST_node), &bytes)){
+    	puts("AST::INIT::OVERFLOW");
+    	exit(EXIT_FAILURE);
+    }
     v->cap = 256;
-    v->data = (AST_node*)malloc(v->cap * sizeof(AST_node));
+    v->data = (AST_node*)malloc(bytes);
     if (v->data == NULL) {
-        printf("AST::INIT::ALLOC\n");
+        puts("AST::INIT::ALLOC");
         exit(EXIT_FAILURE);
     }
     
@@ -29,11 +34,11 @@ int newastvec(AST_vec* v) {
 
 AST_node getnode(AST_vec* v, Node_id index) {
     if (v == NULL || v->data == NULL || v->len == 0) {
-        printf("AST::GET::NULL\n");
+        puts("AST::GET::NULL");
         exit(EXIT_FAILURE);
     }
     if (index >= v->len) {
-        printf("AST::GET::OUT_OF_BOUNDS\n");
+        puts("AST::GET::OUT_OF_BOUNDS");
         exit(EXIT_FAILURE);
     }
     return v->data[index];
@@ -41,18 +46,24 @@ AST_node getnode(AST_vec* v, Node_id index) {
 
 int pushnode(AST_vec* v, const AST_node ast) {
     if (v == NULL || v->data == NULL) {
-        printf("AST::PUSH::NULL\n");
+        puts("AST::PUSH::NULL\n");
         return 0;
     }
     if (v->len >= v->cap) {
         size_t new_cap = v->cap + 256;
         if (new_cap < v->cap) {
-            printf("AST::PUSH::OVERFLOW\n");
+            puts("AST::PUSH::OVERFLOW\n");
             exit(EXIT_FAILURE);
         }
-        AST_node* tmp = (AST_node*)realloc(v->data, new_cap * sizeof(AST_node));
+        size_t bytes = 0;
+		if(!safe_mul_size(new_cap, sizeof(AST_node), &bytes)){
+			puts("AST::PUSH::REALLOC::OVERFLOW");
+			exit(EXIT_FAILURE);
+		}
+        
+        AST_node* tmp = (AST_node*)realloc(v->data, bytes);
         if (tmp == NULL) {
-            printf("AST::PUSH::ALLOC\n");
+            puts("AST::PUSH::ALLOC\n");
             exit(EXIT_FAILURE);
         }
         v->data = tmp;
@@ -74,11 +85,11 @@ int delast(AST_vec* v) {
 
 int newvecid(Vec_id* v, Arena* a, size_t cap) {
     if (v == NULL) {
-        printf("VEC_ID::INIT::NULL\n");
+        puts("VEC_ID::INIT::NULL\n");
         exit(EXIT_FAILURE);
     }
     if (a == NULL) {
-        printf("VEC_ID::INIT::ARENA::NULL\n");
+        puts("VEC_ID::INIT::ARENA::NULL\n");
         exit(EXIT_FAILURE);
     }
     if (cap == 0)
@@ -86,9 +97,16 @@ int newvecid(Vec_id* v, Arena* a, size_t cap) {
     
     v->len = 0;
     v->cap = cap;
-    v->data = (Node_id*)arena_alloc(a, sizeof(Node_id) * cap);
+    
+    size_t bytes = 0;
+	if(!safe_mul_size(cap, sizeof(Node_id), &bytes)){
+		puts("VEC_ID::INIT::OVERFLOW");
+		exit(EXIT_FAILURE);
+	}
+    
+    v->data = (Node_id*)arena_alloc(a, bytes);
     if (v->data == NULL) {
-        printf("VEC_ID::INIT::ALLOC\n");
+        puts("VEC_ID::INIT::ALLOC\n");
         exit(EXIT_FAILURE);
     }
     v->arena = a;
@@ -97,36 +115,37 @@ int newvecid(Vec_id* v, Arena* a, size_t cap) {
 
 Node_id getvecid(Vec_id* v, size_t index) {
     if (v == NULL || v->data == NULL || v->len == 0) {
-        printf("VEC_ID::GET::NULL\n");
+        puts("VEC_ID::GET::NULL\n");
         exit(EXIT_FAILURE);
     }
     if (index >= v->len) {
-        printf("VEC_ID::GET::NULL\n");
+        puts("VEC_ID::GET::NULL\n");
         exit(EXIT_FAILURE);
     }
     return v->data[index];
 }
 
 void pushvecid(Vec_id* v, Node_id val) {
-    if (v->len >= v->cap) {
-        size_t newcap = v->cap * 2;
+	if (v->len >= v->cap) {
+		size_t newcap = v->cap * 2;
+		size_t old_off = (size_t)((u8_t*)v->data - v->arena->data);
 
-        Node_id* newdata = arena_alloc(v->arena, sizeof(Node_id) * newcap);
-        memcpy(newdata, v->data, sizeof(Node_id) * v->len);
+		Node_id* newdata = arena_alloc(v->arena, sizeof(Node_id) * newcap);
+		Node_id* olddata = (Node_id*)(v->arena->data + old_off);
+		memcpy(newdata, olddata, sizeof(Node_id) * v->len);
+		
+		v->data = newdata;
+		v->cap = newcap;
+	}
 
-        v->data = newdata;
-        v->cap = newcap;
-    }
-
-    v->data[v->len++] = val;
-
+	v->data[v->len++] = val;
 }
 
 int delvecid(Vec_id* v) {
     if (v == NULL) return 0;
-    free(v->data);
     v->data = NULL;
     v->len = 0;
     v->cap = 0;
+    v->arena = NULL;
     return 1;
 }

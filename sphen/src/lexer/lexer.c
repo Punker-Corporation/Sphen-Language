@@ -20,14 +20,15 @@ static void read_file(const char* filename, File_t* file){
     fseek(f, 0, SEEK_SET);
     char* fcode = malloc(fsize+1);
 
-    if(fcode){
-		fread(fcode, 1, fsize, f);
-	    fcode[fsize] = '\0';	
-    }
-    fclose(f);
+    if(!fcode) lexer_error("Can not allocate file content buffer");
     file->content = fcode;
-    file->name = malloc(strlen(filename)+1);
-    memcpy(file->name, filename, strlen(filename)+1);
+	size_t nread = fread(fcode, 1, fsize, f);
+	if(nread != fsize) lexer_error("Can not read file content");
+	fcode[fsize] = '\0';
+
+    file->name = malloc(strlen(filename) + 1);
+    if(!file->name) lexer_error("Can not allocate file name buffer");
+    memcpy(file->name, filename, strlen(filename + 1));
 }
 
 void lexer_init(Lexer* lexer, const char* filename){
@@ -127,9 +128,9 @@ static void get_ident(Lexer** lexer){
 static void get_operator(Lexer** lexer){
 	consume(*lexer);
 	advance(*lexer);
-	if(is_operator(next(*lexer))){
-		advance(*lexer);
+	if(is_operator(peek(*lexer))){
 		consume(*lexer);
+		advance(*lexer);
 	}
 	Token_t op = get_punct_token((*lexer)->buffer.data, (*lexer)->buffer.len);
 	
@@ -137,7 +138,7 @@ static void get_operator(Lexer** lexer){
 }
 
 static inline bool is_number(u32_t cur, u32_t next_digit){
-	return isdigit(cur) || (cur == '.' && next_digit);
+	return isdigit(cur) || (cur == '.' && isdigit(next_digit));
 }
 static void get_number(Lexer** lexer){
 	bool isFloat = false;
@@ -290,7 +291,7 @@ void tokenize(Lexer* lexer){
 			
 			case   CHAR_UNKNOWN:
 			default			   :
-				//printf("%s\n", lexer->buffer.data);
+				advance(lexer);
 				break;
 		}
 	}

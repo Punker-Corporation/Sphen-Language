@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="logo/sphen-logo.svg" width="400" alt="A penguin's head representing the Sphen logo.">
+    <img src="sphen-logo.svg" width="400" alt="A penguin's head representing the Sphen logo.">
 </div>
 
 # Sphen Languague

@@ -17,7 +17,7 @@ echo "Compiling with CMake..."
 if [ ! -f "Sphen" ]; then
     cmake .. || { ERROR "CMake configuration failed"; exit 1; }
 fi
-make #VERBOSE=1
+make || { ERROR "Build failed"; exit 1; } #VERBOSE=1
 
 cd ../.. || { ERROR "Error returning to root directory"; exit 1; }
 
@@ -25,4 +25,4 @@ if [ ! -f "sphen/build/Sphen" ]; then
     { ERROR "Sphen executable not found or created"; exit 1; }
 fi
 
-./sphen/build/Sphen
+./sphen/build/Sphen program/main.sp
